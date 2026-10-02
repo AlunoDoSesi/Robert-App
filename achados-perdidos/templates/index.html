@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}Mural{% endblock %}
+{% block content %}
+<section class="hero-shell">
+    <div class="hero-copy">
+        <span class="eyebrow"><span class="eyebrow-dot"></span> mural colaborativo</span>
+        <h1>O que foi perdido pode <span>voltar para casa.</span></h1>
+        <p>Registre um achado, encontre um objeto querido ou ajude alguém a fechar uma história. Cada aviso aumenta a chance de um reencontro.</p>
+        <a class="button button-primary" href="{{ url_for('create_item') }}">Publicar um aviso <span aria-hidden="true">↗</span></a>
+    </div>
+    <div class="hero-note" aria-label="Resumo do mural">
+        <div class="note-orbit orbit-one" aria-hidden="true"></div>
+        <div class="note-orbit orbit-two" aria-hidden="true"></div>
+        <div class="note-topline"><span class="pulse-dot"></span> mural em movimento</div>
+        <div class="note-number">{{ stats.total }}</div>
+        <div class="note-label">avisos publicados pela comunidade</div>
+        <div class="note-footer"><span>Resolvidos</span><strong>{{ stats.resolvidos }}</strong></div>
+    </div>
+</section>
+
+<section class="stats-row" aria-label="Resumo dos itens">
+    <div class="stat-item"><span class="stat-icon stat-icon-violet">✦</span><div><strong>{{ stats.total }}</strong><span>no mural</span></div></div>
+    <div class="stat-divider" aria-hidden="true"></div>
+    <div class="stat-item"><span class="stat-icon stat-icon-amber">⌕</span><div><strong>{{ stats.perdidos }}</strong><span>perdidos</span></div></div>
+    <div class="stat-divider" aria-hidden="true"></div>
+    <div class="stat-item"><span class="stat-icon stat-icon-mint">↗</span><div><strong>{{ stats.encontrados }}</strong><span>encontrados</span></div></div>
+    <div class="stat-divider" aria-hidden="true"></div>
+    <div class="stat-item"><span class="stat-icon stat-icon-lilac">✓</span><div><strong>{{ stats.resolvidos }}</strong><span>resolvidos</span></div></div>
+</section>
+
+<section class="board-section" aria-labelledby="board-title">
+    <div class="section-heading">
+        <div>
+            <span class="section-kicker">explore os avisos</span>
+            <h2 id="board-title">Mural recente <span>·</span></h2>
+        </div>
+        <span class="result-count">{{ items|length }} {% if items|length == 1 %}resultado{% else %}resultados{% endif %}</span>
+    </div>
+
+    <div class="board-tools">
+        <div class="filter-tabs" role="tablist" aria-label="Filtrar por tipo">
+            {% for value, label in [('todos', 'Todos'), ('perdido', 'Perdidos'), ('encontrado', 'Encontrados')] %}
+                <a class="filter-tab {% if filter_type == value %}is-active{% endif %}" href="{{ url_for('index', tipo=value, q=search_term) if search_term else url_for('index', tipo=value) }}" role="tab" aria-selected="{{ 'true' if filter_type == value else 'false' }}">{{ label }}</a>
+            {% endfor %}
+        </div>
+        <form class="search-form" action="{{ url_for('index') }}" method="get" role="search">
+            <input type="hidden" name="tipo" value="{{ filter_type }}">
+            <label class="sr-only" for="search">Buscar no mural</label>
+            <span class="search-icon" aria-hidden="true">⌕</span>
+            <input id="search" name="q" type="search" placeholder="Buscar por palavra-chave..." value="{{ search_term }}" autocomplete="off">
+            {% if search_term %}<a class="search-clear" href="{{ url_for('index', tipo=filter_type) }}" aria-label="Limpar busca">×</a>{% endif %}
+            <button type="submit">Buscar</button>
+        </form>
+    </div>
+
+    {% if items %}
+        <div class="items-grid">
+            {% for item in items %}
+                <article class="item-card {% if item['status'] == 'resolvido' %}is-resolved{% endif %}">
+                    <div class="card-media {% if not item['image_filename'] %}no-image{% endif %}">
+                        {% if item['image_filename'] %}
+                            <img src="{{ url_for('static', filename='uploads/' ~ item['image_filename']) }}" alt="Imagem de {{ item['name'] }}">
+                        {% else %}
+                            <span class="media-pattern" aria-hidden="true"></span>
+                            <span class="media-placeholder" aria-hidden="true">✦</span>
+                        {% endif %}
+                        <span class="type-pill type-{{ item['item_type'] }}">{{ 'Perdido' if item['item_type'] == 'perdido' else 'Encontrado' }}</span>
+                        {% if item['status'] == 'resolvido' %}<span class="resolved-pill">✓ Resolvido</span>{% endif %}
+                    </div>
+                    <div class="card-body">
+                        <div class="card-meta"><span>{{ item['created_at']|format_datetime }}</span><span class="meta-dot"></span><span>{{ 'Aviso' if item['item_type'] == 'perdido' else 'Achado' }}</span></div>
+                        <h3>{{ item['name'] }}</h3>
+                        <p>{{ item['description'] }}</p>
+                        <div class="card-details">
+                            <div><span class="detail-icon" aria-hidden="true">⌖</span><span>{{ item['location'] }}</span></div>
+                            <div><span class="detail-icon" aria-hidden="true">@</span><span>{{ item['contact'] }}</span></div>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <span class="status-label {% if item['status'] == 'resolvido' %}is-done{% endif %}"><span></span>{{ 'Caso resolvido' if item['status'] == 'resolvido' else 'Aguardando reencontro' }}</span>
+                        <form action="{{ url_for('resolve_item', item_id=item['id']) }}" method="post">
+                            <button class="card-action" type="submit">{{ 'Reabrir' if item['status'] == 'resolvido' else 'Marcar resolvido' }} <span aria-hidden="true">→</span></button>
+                        </form>
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-art" aria-hidden="true"><span>⌕</span><i></i></div>
+            {% if search_term %}
+                <h3>Nenhum aviso encontrado.</h3>
+                <p>Tente outra palavra-chave ou limpe a busca para ver todos os itens do mural.</p>
+                <a class="button button-ghost" href="{{ url_for('index', tipo=filter_type) }}">Limpar busca</a>
+            {% else %}
+                <h3>O mural está pronto para o primeiro aviso.</h3>
+                <p>Tem algo perdido ou encontrou um item? Publique os detalhes e ajude a comunidade.</p>
+                <a class="button button-ghost" href="{{ url_for('create_item') }}">Publicar primeiro aviso</a>
+            {% endif %}
+        </div>
+    {% endif %}
+</section>
+{% endblock %}

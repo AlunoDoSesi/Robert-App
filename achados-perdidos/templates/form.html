@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Publicar aviso{% endblock %}
+{% block content %}
+<section class="form-layout">
+    <div class="form-intro">
+        <a class="back-link" href="{{ url_for('index') }}">← Voltar ao mural</a>
+        <span class="eyebrow"><span class="eyebrow-dot"></span> novo aviso</span>
+        <h1>Vamos ajudar este item a <span>reencontrar seu caminho.</span></h1>
+        <p>Quanto mais detalhes você compartilhar, mais fácil será para a pessoa certa reconhecer o item e entrar em contato.</p>
+        <div class="form-tip">
+            <span class="tip-mark" aria-hidden="true">✦</span>
+            <div><strong>Uma dica de cuidado</strong><p>Evite publicar documentos, senhas ou informações sensíveis na descrição.</p></div>
+        </div>
+    </div>
+
+    <form class="item-form" action="{{ url_for('create_item') }}" method="post" enctype="multipart/form-data">
+        <div class="form-section-heading"><span>01</span><div><h2>Sobre o aviso</h2><p>Comece dizendo o que aconteceu.</p></div></div>
+        <fieldset class="type-selector">
+            <legend>Este item foi <span class="required-mark">*</span></legend>
+            <div class="type-options">
+                <label class="type-option {% if request.form.get('tipo') == 'perdido' %}is-selected{% endif %}">
+                    <input type="radio" name="tipo" value="perdido" {% if request.form.get('tipo') == 'perdido' %}checked{% endif %} required>
+                    <span class="type-option-icon icon-lost">⌕</span><span><strong>Perdido</strong><small>Estou procurando algo</small></span><span class="radio-check">✓</span>
+                </label>
+                <label class="type-option {% if request.form.get('tipo') == 'encontrado' %}is-selected{% endif %}">
+                    <input type="radio" name="tipo" value="encontrado" {% if request.form.get('tipo') == 'encontrado' %}checked{% endif %}>
+                    <span class="type-option-icon icon-found">✦</span><span><strong>Encontrado</strong><small>Encontrei algo de alguém</small></span><span class="radio-check">✓</span>
+                </label>
+            </div>
+        </fieldset>
+
+        <div class="form-fields">
+            <div class="field field-wide">
+                <label for="nome">Nome do item <span class="required-mark">*</span></label>
+                <input id="nome" name="nome" type="text" value="{{ request.form.get('nome', '') }}" placeholder="Ex.: Chaveiro azul com estrela" maxlength="120" required>
+            </div>
+            <div class="field field-wide">
+                <label for="descricao">Descrição <span class="required-mark">*</span></label>
+                <textarea id="descricao" name="descricao" rows="4" placeholder="Cor, marca, detalhes que ajudam a identificar..." maxlength="1200" required>{{ request.form.get('descricao', '') }}</textarea>
+                <span class="field-hint">Seja específico, sem compartilhar dados sensíveis.</span>
+            </div>
+            <div class="field">
+                <label for="local">Local relacionado <span class="required-mark">*</span></label>
+                <div class="input-with-icon"><span aria-hidden="true">⌖</span><input id="local" name="local" type="text" value="{{ request.form.get('local', '') }}" placeholder="Ex.: Bloco B, recepção" maxlength="180" required></div>
+            </div>
+            <div class="field">
+                <label for="contato">Como entrar em contato <span class="required-mark">*</span></label>
+                <div class="input-with-icon"><span aria-hidden="true">@</span><input id="contato" name="contato" type="text" value="{{ request.form.get('contato', '') }}" placeholder="E-mail ou telefone" maxlength="180" required></div>
+            </div>
+        </div>
+
+        <div class="form-section-heading form-heading-upload"><span>02</span><div><h2>Uma imagem ajuda</h2><p>Opcional, mas pode facilitar bastante o reconhecimento.</p></div></div>
+        <label class="upload-zone" for="imagem">
+            <input id="imagem" name="imagem" type="file" accept="image/png,image/jpeg,image/gif,image/webp" data-image-input>
+            <span class="upload-icon" aria-hidden="true">↑</span>
+            <span class="upload-copy"><strong>Arraste uma imagem ou <u>selecione do dispositivo</u></strong><small>PNG, JPG, GIF ou WEBP · até 5 MB</small></span>
+            <img class="upload-preview" data-image-preview alt="Pré-visualização da imagem selecionada">
+        </label>
+
+        <div class="form-actions">
+            <a class="button button-ghost" href="{{ url_for('index') }}">Cancelar</a>
+            <button class="button button-primary" type="submit">Publicar no mural <span aria-hidden="true">↗</span></button>
+        </div>
+    </form>
+</section>
+{% endblock %}
